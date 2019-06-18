@@ -1,0 +1,18 @@
+plugins {
+    id 'application'
+    id 'org.springframework.boot'
+}
+
+mainClassName = 'com.netifi.acmeair.FlightsMain'
+
+dependencies {
+    compile project(':flight-idl')
+    compile project(':common')
+
+    compile "com.netifi:netifi-spring-boot-starter"
+    compile "com.netifi:netifi-metrics-micrometer"
+
+    testCompile 'junit:junit'
+}
+
+apply from:'../gradle/docker.gradle'

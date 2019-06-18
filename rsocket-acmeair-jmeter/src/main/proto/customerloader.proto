@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package com.netifi.acmeair;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.acmeair";
+option java_outer_classname = "CustomerLoaderProto";
+option java_multiple_files = true;
+
+message DropCustomersResponse {
+    int64 durationMillis = 1;
+}
+
+message CreateCustomersRequest {
+    int32 count = 1;
+}
+
+message CreateCustomersResponse {
+    int64 duration = 1;
+}
+
+service CustomerLoaderService {
+
+    rpc createCustomers (CreateCustomersRequest) returns (CreateCustomersResponse) {}
+
+    rpc createDefaultCustomers (google.protobuf.Empty) returns (CreateCustomersResponse) {}
+
+    rpc DropCustomers (google.protobuf.Empty) returns (DropCustomersResponse) {}
+}

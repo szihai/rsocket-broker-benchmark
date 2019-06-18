@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package com.netifi.acmeair;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.acmeair";
+option java_outer_classname = "LoginProto";
+option java_multiple_files = true;
+
+
+service LoginService {
+    rpc Login (LoginRequest) returns (LoginResponse) {}
+
+    rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {}
+}
+
+message LoginRequest {
+    string username  = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string sessionId  = 1;
+}
+
+message LogoutRequest {
+    string username  = 1;
+    string sessionId = 2;
+}

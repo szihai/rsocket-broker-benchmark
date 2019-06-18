@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.netifi.acmeair;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.acmeair";
+option java_outer_classname = "BookingLoaderProto";
+option java_multiple_files = true;
+
+message DroppedBookings {
+    int64 durationMillis = 1;
+}
+
+service BookingLoaderService {
+    rpc DropBookings (google.protobuf.Empty) returns (DroppedBookings) {}
+}

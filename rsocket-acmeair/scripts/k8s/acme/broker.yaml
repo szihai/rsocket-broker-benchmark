@@ -1,0 +1,168 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: broker-sa
+rules:
+  - apiGroups: [""]
+    resources:
+      - endpoints
+    verbs: ["get"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: broker-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: broker-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: broker-sa
+subjects:
+  - kind: ServiceAccount
+    name: broker-sa
+    namespace: default
+---
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: broker
+  name: broker
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        app: broker
+      name: broker
+    spec:
+      serviceAccountName: broker-sa
+      automountServiceAccountToken: true
+      hostIPC: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      imagePullSecrets:
+        - name: netifi-private
+      containers:
+        - name: broker
+          image: netifi/broker:1.6.4
+          imagePullPolicy: Always
+          env:
+            - name: BROKER_SERVER_OPTS
+              value: "$(BROKER_SERVER_OPTS) '-Dcom.sun.management.jmxremote.rmi.port=40000' \
+                    '-Dnetifi.broker.tcp.port=8001' \
+                    '-Dcom.sun.management.jmxremote=true' \
+                    '-Dcom.sun.management.jmxremote.port=40000' \
+                    '-Dcom.sun.management.jmxremote.ssl=false' \
+                    '-Dcom.sun.management.jmxremote.authenticate=false' \
+                    '-Dcom.sun.management.jmxremote.local.only=false' \
+                    '-XX:ActiveProcessorCount=2'
+                    '-Dio.netty.leakDetectionLevel=disabled' \
+                    '-Djava.rmi.server.hostname='$(BROKER_PUBLIC_ADDRESS)"
+            - name: AUTHENTICATION.0.accessKey
+              valueFrom:
+                secretKeyRef:
+                  name: authentication-token
+                  key: accessKey
+            - name: AUTHENTICATION.0.accessToken
+              valueFrom:
+                secretKeyRef:
+                  name: authentication-token
+                  key: accessToken
+            - name: ADMIN_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: broker-admin
+                  key: accessKey
+            - name: ADMIN_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: broker-admin
+                  key: accessToken
+            - name: BROKER_PUBLIC_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: WEBSOCKET_BROKER_PUBLIC_ADDRESS
+              value: "47.254.50.120"
+            - name: ADMIN_PUBLIC_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: CLUSTER_PUBLIC_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KUBERNETES_DEPLOYMENT_NAME
+              value: "broker"
+            - name: KUBERNETES_PORT_NAME
+              value: "cluster"
+            - name: ENVIRONMENT
+              value: "kubernetes"
+            - name: SSL_DISABLED
+              value: "false"
+            - name: PROMETHEUS_BRIDGE
+              value: "true"
+          ports:
+            - name: metrics
+              containerPort: 8888
+              hostPort: 8888
+            - name: cluster
+              containerPort: 7001
+              hostPort: 7001
+            - name: tcp
+              containerPort: 8001
+              hostPort: 8001
+            - name: websocket
+              containerPort: 8101
+              hostPort: 8101
+            - name: admin
+              containerPort: 6001
+              hostPort: 6001
+            - name: console
+              containerPort: 9000
+              hostPort: 9000
+            - name: jmx
+              containerPort: 40000
+              hostPort: 40000
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: broker
+  namespace: default
+spec:
+  selector:
+    app: broker
+  type: LoadBalancer
+  ports:
+    - name: metrics
+      port: 8888
+    - name: cluster
+      port: 7001
+    - name: tcp
+      port: 8001
+    - name: websocket
+      port: 8101
+    - name: admin
+      port: 6001
+    - name: console
+      port: 9000
+    - name: jmx
+      port: 40000

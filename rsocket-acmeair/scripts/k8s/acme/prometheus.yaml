@@ -1,0 +1,113 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: default
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+    purpose: broker
+spec:
+  serviceName: prometheus
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      purpose: broker
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        purpose: broker
+    spec:
+      securityContext:
+        fsGroup: 2000
+        runAsUser: 1000
+        runAsNonRoot: true
+      serviceAccountName: prometheus
+      automountServiceAccountToken: true
+      containers:
+        - name: prometheus-broker
+          image: prom/prometheus
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "5000Mi"
+            requests:
+              memory: "5000Mi"
+          volumeMounts:
+            - name : prom-volume
+              mountPath: /prometheus
+            - name: config-volume
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+          ports:
+            - name: promui
+              containerPort: 9090
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-cm
+      nodeSelector:
+        workload: general
+  volumeClaimTemplates:
+    - metadata:
+        name: prom-volume
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: prometheus
+spec:
+  type: LoadBalancer
+  selector:
+    app: prometheus
+    purpose: broker
+  ports:
+    - name: prom-public
+      protocol: TCP
+      port: 80
+      targetPort: promui

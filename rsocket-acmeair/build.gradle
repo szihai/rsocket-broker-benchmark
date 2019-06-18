@@ -1,0 +1,73 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.5.RELEASE' apply false
+    id 'com.google.protobuf' version '0.8.8' apply false
+}
+
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+}
+
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    
+    group 'com.netifi.acmeair'
+    version '1.6.4.BUILD-SNAPSHOT'
+
+    dependencyManagement {
+        imports {
+            mavenBom "com.netifi:netifi-bom:${netifiBomVersion}"
+            mavenBom "io.projectreactor:reactor-bom:${reactorBomVersion}"
+        }
+        dependencies {
+            dependency "io.r2dbc:r2dbc-postgresql:${r2dbcVersion}"
+            dependency "io.r2dbc:r2dbc-client:${r2dbcVersion}"
+            //dependency "io.r2dbc:r2dbc-pool:${r2dbcVersion}"
+            dependency "com.netifi.reactor.pool:reactor-pool-r2dbc:${reactorPoolVersion}"
+
+            dependency "com.google.protobuf:protobuf-java:${protobufVersion}"
+            dependency "com.google.protobuf:protoc:${protobufVersion}"
+            dependency "io.rsocket.rpc:rsocket-rpc-protobuf:${rsocketRpcVersion}"
+            dependency "io.rsocket.rpc:rsocket-rpc-core:${rsocketRpcVersion}"
+            dependency "io.rsocket:rsocket-core:${rsocketVersion}"
+            dependency "io.rsocket:rsocket-transport-netty:${rsocketVersion}"
+            dependency "io.netty:netty-tcnative-boringssl-static:${nettyTcnativeVersion}"
+            dependency "io.netty:netty-tcnative:${nettyTcnativeVersion}"
+
+            dependency 'junit:junit:4.12'
+        }
+    }
+
+    repositories {
+        jcenter()
+        maven {
+            url 'http://repo.spring.io/libs-milestone'
+        }
+    }
+
+    sourceCompatibility = 1.8
+
+    plugins.withType(ApplicationPlugin) {
+        applicationDefaultJvmArgs = [
+                '-XshowSettings:vm',
+                '-XX:+UseG1GC',
+                '-XX:MaxGCPauseMillis=200',
+                '-XX:+AlwaysPreTouch',
+                '-XX:+UseStringDeduplication',
+                '-XX:+ExplicitGCInvokesConcurrent',
+                '-XX:+ParallelRefProcEnabled',
+                '-XX:InitialRAMPercentage=10',
+                '-XX:MinRAMPercentage=10',
+                '-XX:MaxRAMPercentage=70',
+                '-XX:+UnlockExperimentalVMOptions',
+                '-XX:+UseCGroupMemoryLimitForHeap',
+                '-XX:MaxDirectMemorySize=256M',
+                '-XX:+IgnoreUnrecognizedVMOptions',
+                '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+                '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
+        ]
+    }
+}

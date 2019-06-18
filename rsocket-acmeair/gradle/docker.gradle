@@ -1,0 +1,91 @@
+import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:3.6.2'
+        classpath 'javax.activation:activation:1.1.1'
+    }
+}
+
+apply plugin: DockerRemoteApiPlugin
+
+// Docker Publishing
+import com.bmuschko.gradle.docker.tasks.image.*
+
+docker {
+    registryCredentials {
+        if (version.endsWith('SNAPSHOT')) {
+            // Private Docker Repo
+            url = 'https://netifi.azurecr.io'
+            username = System.getenv("DOCKER_NETIFI_USERNAME") ?: null
+            password = System.getenv("DOCKER_NETIFI_PASSWORD") ?: null
+        } else {
+            // Public Docker Repo
+            username = System.getenv("DOCKER_HUB_USERNAME") ?: null
+            password = System.getenv("DOCKER_HUB_PASSWORD") ?: null
+        }
+    }
+}
+
+def projectName() {
+    "netifi-acmeair-${project.name}"
+}
+
+def publicNetifi() {
+    "netifi"
+}
+
+def privateNetifi() {
+    "netifi.azurecr.io"
+}
+
+task buildImage(type: DockerBuildImage) {
+    buildArgs = ['APP_VERSION': version]
+    inputDir = new File("${projectDir}")
+
+    if (version.endsWith('SNAPSHOT')) {
+        if (project.hasProperty('commitHash')) {
+            println "has commitHash -> ${commitHash}"
+            tags = ["${privateNetifi()}/${projectName()}:$version-${commitHash}".toString()]
+        } else {
+            tags = ["${privateNetifi()}/${projectName()}:${version}".toString()]
+        }
+    } else {
+        if (project.hasProperty('tagLatest') && project.property('tagLatest').toBoolean()) {
+            tags = ["${publicNetifi()}/${projectName()}:latest", "${publicNetifi()}/${projectName()}:${version}".toString()]
+        } else {
+            tags = ["${publicNetifi()}/${projectName()}".toString()]
+        }
+    }
+}
+
+task tagImage(type: DockerTagImage, dependsOn: buildImage) {
+    if (version.endsWith('SNAPSHOT')) {
+        if (project.hasProperty('commitHash')) {
+            println "has commitHash -> ${commitHash}"
+
+            imageId = "${privateNetifi()}/${projectName()}:${version}-${commitHash}"
+            tag = "${version}-${commitHash}"
+        } else {
+            imageId = "${privateNetifi()}/${projectName()}:${version}"
+            tag = "${version}"
+        }
+
+        repository = 'netifi.azurecr.io/broker'
+    } else {
+        imageId = "${publicNetifi()}/${projectName()}:${version}"
+        tag = "${version}"
+        repository = 'netifi/broker'
+    }
+}
+
+task pushImage(type: DockerPushImage, dependsOn: tagImage) {
+    if (version.endsWith('SNAPSHOT')) {
+        imageName = "${privateNetifi()}/${projectName()}"
+    } else {
+        imageName = "${publicNetifi()}/${projectName()}"
+    }
+}

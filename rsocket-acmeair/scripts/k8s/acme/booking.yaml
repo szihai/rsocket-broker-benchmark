@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acmeair-booking
+  labels:
+    app: acmeair-booking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acmeair-booking
+  template:
+    metadata:
+      labels:
+        app: acmeair-booking
+    spec:
+      containers:
+        - name: acmeair-booking
+          image: netifi.azurecr.io/netifi-acmeair-booking:1.6.4.BUILD-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1500m"
+          env:
+            - name: NETIFI_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: BOOKING_OPTS
+              value: "$(BOOKING_OPTS) '-Dspring.config.name=application-prod' \
+                                        '-Dnetifi.acmeair.postgres.host=172.20.100.146' \
+                                        '-Dnetifi.acmeair.postgres.database=acme' \
+                                        '-Dnetifi.acmeair.postgres.username=postgres' \
+                                        '-Dnetifi.acmeair.postgres.password=benchmark' \
+                                        '-Dnetifi.acmeair.postgres.poolSize=40' \
+                                        '-Dnetifi.client.broker.hostname=$(NETIFI_HOSTNAME)' \
+                                        '-Dio.netty.leakDetectionLevel=disabled' \
+                                        '-Dnetifi.client.broker.port=8001'"
+      imagePullSecrets:
+        - name: netifi-private

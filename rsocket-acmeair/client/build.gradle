@@ -1,0 +1,42 @@
+plugins {
+    id 'application'
+    id 'org.springframework.boot'
+}
+
+run { 
+    systemProperties = System.properties
+}
+
+mainClassName = 'com.netifi.acmeair.ClientMain'
+
+applicationDefaultJvmArgs = [
+        '-XX:+IgnoreUnrecognizedVMOptions',
+        '-XshowSettings:vm',
+        '-XX:+UseG1GC',
+        '-XX:MaxGCPauseMillis=200',
+        '-XX:+AlwaysPreTouch',
+        '-XX:+UseStringDeduplication',
+        '-XX:+ExplicitGCInvokesConcurrent',
+        '-XX:+ParallelRefProcEnabled',
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+UseCGroupMemoryLimitForHeap',
+        '-XX:InitialRAMPercentage=70',
+        '-XX:MaxRAMPercentage=70',
+        '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+        '-Duser.timezone=America/Los_Angeles',
+        '-Dspring.config.name=application-prod'
+]
+
+
+dependencies {
+    compile project(':booking-idl')
+    compile project(':customer-idl')
+    compile project(':login-idl')
+    compile project(':flight-idl')
+
+    compile "com.netifi:netifi-spring-boot-starter"
+    compile "org.springframework.boot:spring-boot-starter"
+    compile "com.netifi:netifi-metrics-micrometer"
+    
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.1'
+}

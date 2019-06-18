@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package com.netifi.acmeair;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.acmeair";
+option java_outer_classname = "FlightProto";
+option java_multiple_files = true;
+
+
+service FlightService {
+    rpc GetTripsFlight (GetTripFlightsRequest) returns (GetTripFlightsResponse) {}
+}
+
+message GetTripFlightsRequest {
+    string fromAirport = 1;
+    string toAirport   = 2;
+    int64 fromDate     = 3;
+    int64 returnDate   = 4;
+    bool oneWay        = 5;
+}
+
+message GetTripFlightsResponse {
+   repeated Flight toFlight = 1;
+   repeated Flight returnFlight = 2;
+}
+
+message Flight {
+    string id = 1;
+    string firstClassBaseCost = 2;
+    string economyClassBaseCost = 3;
+    string numFirstClassSeats = 4;
+    string numEconomyClassSeats = 5;
+    string airplaneTypeId = 6;
+    Segment segment = 7;
+    string scheduledDepartureTime = 8;
+    string scheduledArrivalTime = 9;
+}
+
+message Segment {
+   string flightSegmentId = 1;
+   string originPort = 2;
+   string destinationPort = 3;
+   int32  miles = 4;
+}

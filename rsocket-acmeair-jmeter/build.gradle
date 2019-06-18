@@ -1,0 +1,121 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '4.0.2'
+    id 'com.google.protobuf' version '0.8.8'
+    id 'io.spring.dependency-management' version '1.0.7.RELEASE'
+}
+
+jar {
+    baseName = 'jmeter-plugin-reactive'
+    version = '0.0.1-SNAPSHOT'
+}
+
+sourceCompatibility = 1.8
+
+// Netifi Versions
+ext {
+    netifiBomVersion = '1.6.4'
+    nettyTcnativeVersion = '2.0.25.Final'
+    protobufVersion = '3.6.1'
+    reactorBomVersion='Californium-SR8'
+    rsocketRpcVersion = '0.2.18'
+    rsocketVersion = '0.12.2-RC3'
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "com.netifi:netifi-bom:${netifiBomVersion}"
+        mavenBom "io.projectreactor:reactor-bom:${reactorBomVersion}"
+    }
+    dependencies {
+        dependency "com.google.protobuf:protobuf-java:${protobufVersion}"
+        dependency "com.google.protobuf:protoc:${protobufVersion}"
+        dependency "io.rsocket.rpc:rsocket-rpc-protobuf:${rsocketRpcVersion}"
+        dependency "io.rsocket.rpc:rsocket-rpc-core:${rsocketRpcVersion}"
+        dependency "io.rsocket:rsocket-core:${rsocketVersion}"
+        dependency "io.rsocket:rsocket-transport-netty:${rsocketVersion}"
+        dependency "io.netty:netty-tcnative-boringssl-static:${nettyTcnativeVersion}"
+        dependency "io.netty:netty-tcnative:${nettyTcnativeVersion}"
+
+        dependency 'junit:junit:4.12'
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "com.netifi:netifi-broker-client"
+    compile "com.google.protobuf:protobuf-java"
+    compile "io.rsocket.rpc:rsocket-rpc-core"
+    compile "io.netty:netty-tcnative-boringssl-static"
+    compile "io.netty:netty-tcnative"
+    compile "io.rsocket:rsocket-core"
+    compile "io.rsocket:rsocket-transport-netty"
+    compile 'org.apache.jmeter:ApacheJMeter_core:5.1.1'
+    compile 'org.apache.jmeter:ApacheJMeter_http:5.1.1'
+    compile 'org.apache.jmeter:ApacheJMeter_java:5.1.1'
+}
+
+configurations {
+    runtime.exclude module: 'ApacheJMeter_core'
+    runtime.exclude module: 'ApacheJMeter_java'
+    runtime.exclude module: 'ApacheJMeter_http'
+    runtime.exclude module: 'commons-logging'
+}
+
+shadowJar {
+    baseName = 'jmeter-plugin-reactive'
+    version = '0.0.1-SNAPSHOT'
+}
+
+sourceSets {
+    main {
+        proto { srcDir 'src/main/proto' }
+    }
+
+    test {
+        proto { srcDir 'src/test/proto' }
+    }
+}
+
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/src/generated"
+
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.6.1'
+    }
+
+    plugins {
+        rsocketRpc {
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
+        }
+        generateProtoTasks {
+            ofSourceSet('main')*.plugins {
+                rsocketRpc {}
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        sourceDirs += file("src/main/proto")
+        sourceDirs += file("src/generated/main/java")
+        sourceDirs += file("src/generated/main/rsocketRpc")
+
+        generatedSourceDirs += file('src/generated/main/java')
+        generatedSourceDirs += file('src/generated/main/rsocketRpc')
+    }
+}
+
+clean {
+    delete 'src/generated'
+}

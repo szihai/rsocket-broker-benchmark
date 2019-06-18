@@ -1,0 +1,10 @@
+dependencies {
+    compile "io.projectreactor:reactor-core"
+    compile "org.slf4j:slf4j-api:1.7.26"
+    compile "io.netty:netty-common:4.1.36.Final"
+
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.3.1"
+    testCompile "org.junit.jupiter:junit-jupiter-params:5.3.1"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:5.3.1"
+    testCompile "io.projectreactor:reactor-test"
+}

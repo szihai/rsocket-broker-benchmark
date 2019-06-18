@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acmeair-flight
+  labels:
+    app: acmeair-flight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acmeair-flight
+  template:
+    metadata:
+      labels:
+        app: acmeair-flight
+    spec:
+      containers:
+        - name: acmeair-flight
+          image: netifi.azurecr.io/netifi-acmeair-flight:1.6.4.BUILD-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1500m"
+          env:
+            - name: NETIFI_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: FLIGHT_OPTS
+              value: "$(FLIGHT_OPTS) '-Dspring.config.name=application-prod' \
+                                     '-Dnetifi.acmeair.postgres.host=172.20.100.146' \
+                                     '-Dnetifi.acmeair.postgres.database=acme' \
+                                     '-Dnetifi.acmeair.postgres.username=postgres' \
+                                     '-Dnetifi.acmeair.postgres.password=benchmark' \
+                                     '-Dnetifi.acmeair.postgres.poolSize=40' \
+                                     '-Dnetifi.client.broker.hostname=$(NETIFI_HOSTNAME)' \
+                                     '-Dnetifi.client.broker.port=8001' \
+                                     '-Duser.timezone=America/Los_Angeles' \
+                                     '-Dio.netty.leakDetectionLevel=disabled' \
+                                     '-Dnetifi.acmeair.cacheflights=true'"
+      imagePullSecrets:
+        - name: netifi-private

@@ -1,0 +1,14 @@
+dependencies {
+    compile project(":reactor-pool-core")
+    compile "io.r2dbc:r2dbc-spi:${r2dbcVersion}"
+
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.3.1"
+    testCompile "org.junit.jupiter:junit-jupiter-params:5.3.1"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:5.3.1"
+    testCompile "io.projectreactor:reactor-test"
+    testCompile "io.r2dbc:r2dbc-postgresql"
+
+    testCompile "org.testcontainers:testcontainers:1.10.5"
+    testCompile "org.testcontainers:postgresql:1.10.5"
+    testCompile "org.slf4j:slf4j-simple:1.7.26"
+}

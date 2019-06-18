@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package com.netifi.acmeair;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.acmeair";
+option java_outer_classname = "CustomerProto";
+option java_multiple_files = true;
+
+
+service CustomerService {
+    rpc CreateCustomer (CreateCustomerRequest) returns (google.protobuf.Empty) {}
+
+    rpc UpdateCustomer (UpdateCustomerRequest) returns (google.protobuf.Empty) {}
+
+    rpc GetCustomer (GetCustomerRequest) returns (GetCustomerResponse) {}
+
+    rpc ValidateCustomer (ValidateCustomerRequest) returns (ValidateCustomerResponse) {}
+}
+
+message ValidateCustomerRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message ValidateCustomerResponse {
+    bool valid = 1;
+}
+
+message GetCustomerRequest {
+    string username  = 1;
+    string token = 2;
+}
+
+message Address {
+    string streetAddress1 = 1;
+    string streetAddress2 = 2;
+    string city = 3;
+    string stateProvince = 4;
+    string country = 5;
+    string postalCode = 6;
+}
+
+message Customer {
+    string status = 1;
+    int32 totalMiles = 2;
+    int32 milesYtd = 3;
+    string phoneNumber = 4;
+    string phoneNumberType = 5;
+    Address address = 6;
+}
+
+message GetCustomerResponse {
+    string username  = 1;
+    Customer customer  = 2;
+}
+
+message CreateCustomerRequest {
+    string username  = 1;
+    string password = 2;
+    Customer customer  = 3;
+}
+
+message UpdateCustomerRequest {
+    string username  = 1;
+    string token = 2;
+    Customer customer  = 3;
+}

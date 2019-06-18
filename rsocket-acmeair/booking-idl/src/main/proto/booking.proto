@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package com.netifi.acmeair;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.acmeair";
+option java_outer_classname = "BookingProto";
+option java_multiple_files = true;
+
+service BookingService {
+    rpc BookFlight (BookFlightRequest) returns (BookFlightResponse) {}
+
+    rpc BookOnewayFlight (BookOnewayFlightRequest) returns (BookOnewayFlightResponse) {}
+
+    rpc GetBookingByNumber (GetBookingByNumberRequest) returns (Booking) {}
+
+    rpc GetBookingsByUser (GetBookingsByUserRequest) returns (stream Booking) {}
+
+    rpc CancelBooking (CancelBookingRequest) returns (google.protobuf.Empty) {}
+
+}
+
+message BookFlightRequest {
+    string username       = 1;
+    string toFlightId     = 2;
+    string returnFlightId = 3;
+}
+
+message BookFlightResponse {
+    string toBookingId     = 1;
+    string returnBookingId = 2;
+}
+
+message BookOnewayFlightRequest {
+    string username       = 1;
+    string toFlightId     = 2;
+}
+
+message BookOnewayFlightResponse {
+    string toBookingId     = 1;
+}
+
+message Booking {
+    string bookingId     = 1;
+    string username      = 2;
+    string flightId      = 3;
+    string dateOfBooking = 4;
+}
+
+message GetBookingByNumberRequest {
+    string username  = 1;
+    string bookingId = 2;
+}
+
+message GetBookingByNumberResponse {
+    Booking toFlight     = 1;
+    Booking returnFlight = 2;
+}
+
+message GetBookingsByUserRequest {
+    string username  = 1;
+}
+
+message CancelBookingRequest {
+    string username  = 1;
+    string bookingId = 2;
+}

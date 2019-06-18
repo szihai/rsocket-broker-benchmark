@@ -1,0 +1,18 @@
+plugins {
+    id 'application'
+    id 'org.springframework.boot'
+}
+
+mainClassName = 'com.netifi.acmeair.BookingMain'
+
+dependencies {
+    compile project(':booking-idl')
+    compile project(':common')
+    
+    compile "com.netifi:netifi-spring-boot-starter"
+    compile "com.netifi:netifi-metrics-micrometer"
+
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.1'
+}
+
+apply from:'../gradle/docker.gradle'

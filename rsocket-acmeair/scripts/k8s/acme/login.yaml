@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acmeair-login
+  labels:
+    app: acmeair-login
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acmeair-login
+  template:
+    metadata:
+      labels:
+        app: acmeair-login
+    spec:
+      containers:
+        - name: acmeair-login
+          image: netifi.azurecr.io/netifi-acmeair-login:1.6.4.BUILD-SNAPSHOT
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1500m"
+          env:
+            - name: NETIFI_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: LOGIN_OPTS
+              value: "$(LOGIN_OPTS) '-Dspring.config.name=application-prod' \
+                                    '-Dnetifi.acmeair.postgres.host=172.20.100.146' \
+                                    '-Dnetifi.acmeair.postgres.database=acme' \
+                                    '-Dnetifi.acmeair.postgres.username=postgres' \
+                                    '-Dnetifi.acmeair.postgres.password=benchmark' \
+                                    '-Dnetifi.acmeair.postgres.poolSize=40' \
+                                    '-Dio.netty.leakDetectionLevel=disabled' \
+                                    '-Dnetifi.client.broker.hostname=$(NETIFI_HOSTNAME)' \
+                                    '-Dnetifi.client.broker.port=8001'"
+      imagePullSecrets:
+        - name: netifi-private
