@@ -48,6 +48,9 @@ And wait for a while until all the pods are up and running.
 * Run Jmeter with command `JVM_ARGS="-Duser.timezone=America/Los_Angeles -Xmx8g -Xms8g -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:+UseG1GC" ./jmeter -n -t test_1000.jmx`
 Now we can see the results.
 
+## Summary
+You can tear down the benchmark by running `rsocket-acmeair/scripts/k8s/teardown_broker.sh` and `teardown_acme.sh`. If you are interested, you can try the original [acmeair](https://github.com/blueperf/acmeair-mainservice-java) with Istio and compare the results.
+
 
 
 
